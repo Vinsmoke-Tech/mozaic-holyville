@@ -854,7 +854,7 @@ class APIController extends Controller
 
         if(count($si->refresh()->journal()->get())) { 
             DB::rollBack();
-            return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
+            return response(['message' => 'Data Tidak Berhasil Disimpan'], 400);
         }
 
         if(!empty($si)){
@@ -1353,7 +1353,7 @@ class APIController extends Controller
   
             if(count($salesinvoice->journal)) { 
                 DB::rollBack();
-                return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
+                return response(['message' => 'Data Tidak Berhasil Disimpan'], 400);
             }
         try {
             DB::beginTransaction();
