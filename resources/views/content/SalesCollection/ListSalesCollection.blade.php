@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', 'MOZAIC Waroeng Jamboel')
+@section('title', 'MOZAIC Holyville')
 <link rel="shortcut icon" href="{{ asset('resources/assets/logo_pbf.ico') }}" />
 
 @section('js')

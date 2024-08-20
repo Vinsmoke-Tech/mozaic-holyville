@@ -1,7 +1,7 @@
 @inject('CRA','App\Http\Controllers\CoreRecipeController')
 @extends('adminlte::page')
 
-@section('title', 'MOZAIC Waroeng Jamboel')
+@section('title', 'MOZAIC Holyville')
 @section('js')
 <script>
  function changeSatuan(){

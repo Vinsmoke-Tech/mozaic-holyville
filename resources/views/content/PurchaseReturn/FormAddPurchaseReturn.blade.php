@@ -1,7 +1,7 @@
 @inject('PurchaseReturn', 'App\Http\Controllers\PurchaseReturnController')
 @extends('adminlte::page')
 
-@section('title', 'MOZAIC Waroeng Jamboel')
+@section('title', 'MOZAIC Holyville')
 @section('js')
 <script>
     function function_elements_add(name, value){

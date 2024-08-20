@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'MOZAIC Waroeng Jamboel')
+@section('title', 'MOZAIC Holyville')
 
 @section('content_header')
     
