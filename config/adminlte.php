@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'logo' => '<b>MOZAIC</b>Jamboel',
+    'logo' => '<b>MOZAIC</b>Holyville',
     'logo_img' => 'resources/assets/img/logo_baru_mozaic/logo baru set-09.png',
     'logo_img_class' => 'brand-image',
     'logo_img_xl' => null,
