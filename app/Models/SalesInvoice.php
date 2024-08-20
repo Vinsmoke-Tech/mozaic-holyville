@@ -49,7 +49,7 @@ class SalesInvoice extends Model
     }
     public function journal() {
         return $this->hasOne(JournalVoucher::class,'transaction_journal_no','sales_invoice_no');
-     }
+    }
      protected static function booted()
      {
          $userid=Auth::id();

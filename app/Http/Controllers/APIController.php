@@ -852,6 +852,11 @@ class APIController extends Controller
 
         $si = SalesInvoice::create($data);
 
+        if(count($si->refresh()->journal()->get())) { 
+            DB::rollBack();
+            return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
+        }
+
         if(!empty($si)){
             foreach($fields['items'] as $key => $val){
                 $item = InvtItem::where('item_id', $val['item_id'])->first();
@@ -1338,14 +1343,18 @@ class APIController extends Controller
             $payment_method = 6;
         }
 
-        $salesinvoice = SalesInvoice::findOrFail($fields['sales_invoice_id']);
+        $salesinvoice = SalesInvoice::with('journal')->findOrFail($fields['sales_invoice_id']);
         $salesinvoice->discount_percentage_total = $fields['discount_percentage_total'];
         $salesinvoice->discount_amount_total = $fields['discount_amount_total'];
         $salesinvoice->total_amount = $salesinvoice->subtotal_amount - $fields['discount_amount_total'] + $fields['ppn_amount_total'];
         $salesinvoice->paid_amount = $fields['paid_amount'];
         $salesinvoice->change_amount = $fields['paid_amount'] - ($salesinvoice->subtotal_amount - $fields['discount_amount_total'] + $fields['ppn_amount_total']);
         $salesinvoice->payment_method = $payment_method;
-
+  
+            if(count($salesinvoice->journal)) { 
+                DB::rollBack();
+                return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
+            }
         try {
             DB::beginTransaction();
             $salesinvoice->save();
@@ -1367,8 +1376,14 @@ class APIController extends Controller
                     'updated_id'                    => $fields['user_id'],
                     'created_id'                    => $fields['user_id']
                 );
+                
+                $sales_invoice_cek = JournalVoucher::select('invoice_id')
+                ->where('invoice_id', '=', $salesinvoice['sales_invoice_id'])
+                ->count();
 
+            if($sales_invoice_cek == 0){
                 $jv=JournalVoucher::create($journal);
+
                     $journal_voucher_id = JournalVoucher::where('company_id', $company_id['company_id'])
                     ->orderBy('created_at', 'DESC')
                     ->first();
@@ -1423,6 +1438,7 @@ class APIController extends Controller
                         'updated_id'                    => $fields['user_id'],
                         'created_id'                    => $fields['user_id']
                     ]);
+                }
                 DB::commit();
                 return response(['message' => 'Data Berhasil Disimpan'], 201);
         }catch(\Exception $e){
