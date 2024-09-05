@@ -35,6 +35,9 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
     Route::post('/expenditure/get-account', [APIController::class, 'getExpenditureAccount']);
     
     Route::post('/item-category', [APIController::class, 'getInvtItemCategory']);
+    
+    Route::post('/item-dropdown', [APIController::class, 'CategoryDropDown']);
+
     Route::post('/item-category/add', [APIController::class, 'insertInvtItemCategory']);
     Route::post('/item', [APIController::class, 'getInvtItem']);
     Route::post('/item/all', [APIController::class, 'getInvtItemAll']);

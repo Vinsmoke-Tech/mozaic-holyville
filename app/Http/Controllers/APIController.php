@@ -209,6 +209,48 @@ class APIController extends Controller
         }
         return 0;
     }
+
+    public function CategoryDropDown(Request $request){
+        $fields = $request->validate([
+            'user_id'           => 'required|string',
+        ]);
+
+        $company_id = User::select('preference_company.company_id')
+        ->join('preference_company', 'preference_company.company_id', 'system_user.company_id')
+        ->where('system_user.user_id', $fields['user_id'])
+        ->first();
+
+        $invtcategory = InvtItemCategory::select('*')
+        ->where('company_id', $company_id['company_id'])
+        ->where('data_state', 0)
+        // ->orderBy('item_category_name', 'ASC')
+        ->get();
+
+        $total = 0;
+        foreach($invtcategory as $key => $val){
+            $stock_total = InvtItemStock::where('item_category_id', $val['item_category_id'])
+            ->where('data_state', 0)
+            ->sum('last_balance');
+
+            if(!$stock_total){
+                $stock_total = 0;
+            }
+
+            $invtcategory[$key]['stock_total'] = intval($stock_total);
+            $total += intval($stock_total);
+        }
+
+
+        if($invtcategory){
+            return response([
+                'data' => $invtcategory 
+            ],201);
+        }else{
+            return response([
+                'message' => 'Data Tidak Ditemukan'
+            ],401);
+        }
+    }
     
     public function getInvtItemCategory(Request $request){
         $fields = $request->validate([
@@ -223,7 +265,7 @@ class APIController extends Controller
         $invtcategory = InvtItemCategory::select('*')
         ->where('company_id', $company_id['company_id'])
         ->where('data_state', 0)
-        ->orderBy('item_category_name', 'ASC')
+        // ->orderBy('item_category_name', 'ASC')
         ->get();
 
         $total = 0;
