@@ -1049,7 +1049,10 @@ class APIController extends Controller
                     'created_id'                    => $fields['user_id']
                 );
             $jv->items()->create($journal_credit);
+
+            //insert invoice_id in jurnal_voucher
             $jv->sales()->associate($si)->save();
+            //insert transaction_journal_no in jurnal_voucher
             $jv->salesNo()->associate($si)->save();
         
             DB::commit();
@@ -1356,6 +1359,7 @@ class APIController extends Controller
 
     }
 
+    //Insert data Saved Order
     public function paySavedSalesOrder(Request $request){
         $fields = $request->validate([
             'user_id'                   => 'required',
@@ -1392,11 +1396,14 @@ class APIController extends Controller
         $salesinvoice->paid_amount = $fields['paid_amount'];
         $salesinvoice->change_amount = $fields['paid_amount'] - ($salesinvoice->subtotal_amount - $fields['discount_amount_total'] + $fields['ppn_amount_total']);
         $salesinvoice->payment_method = $payment_method;
-  
-            if(count($salesinvoice->journal)) { 
-                DB::rollBack();
-                return response(['message' => 'Data Tidak Berhasil Disimpan'], 400);
-            }
+
+            //check jika transaction_journal_no sudah ada maka error tidak bisa insert
+                if($salesinvoice->journal()->exists()) { 
+                    DB::rollBack();
+                    return response(['message' => 'Data Tidak Berhasil Disimpan'], 400);
+                }
+            //end
+
         try {
             DB::beginTransaction();
             $salesinvoice->save();
@@ -1419,12 +1426,15 @@ class APIController extends Controller
                     'created_id'                    => $fields['user_id']
                 );
                 
+                //check apakah invoice_id di journal_voucher sudah ada
                 $sales_invoice_cek = JournalVoucher::select('invoice_id')
                 ->where('invoice_id', '=', $salesinvoice['sales_invoice_id'])
                 ->count();
-
+            
+            //jika invoice_id belum ada maka insert ke journal voucher
             if($sales_invoice_cek == 0){
-                $jv=JournalVoucher::create($journal);
+
+                $jv = JournalVoucher::create($journal);
 
                     $journal_voucher_id = JournalVoucher::where('company_id', $company_id['company_id'])
                     ->orderBy('created_at', 'DESC')

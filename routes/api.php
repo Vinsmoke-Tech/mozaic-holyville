@@ -47,30 +47,28 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
     Route::post('/item-unit/add', [APIController::class, 'insertInvtItemUnit']);
     Route::post('/item-detail', [APIController::class, 'getInvtItemDetail']);
     
-    Route::post('/sales/add', [APIController::class, 'insertSalesInvoice']);
-    Route::post('/sales/save', [APIController::class, 'insertSaveSalesInvoice']);
     Route::post('/sales/print', [APIController::class, 'getSalesPrintData']);
-    
-    Route::post('/sales-recipe/add', [APIController::class, 'insertSalesInvoiceRecipe']);
-    Route::post('/sales-recipe/save', [APIController::class, 'insertSaveSalesInvoiceRecipe']);
     
     Route::post('/sales-list-today/unpaid', [APIController::class, 'getUnpaidSalesListToday']);
     Route::post('/sales-list-today/paid', [APIController::class, 'getPaidSalesListToday']);
     Route::post('/sales-list-today/paid/menu', [APIController::class, 'getPaidSalesListMenuToday']);
     
-    Route::post('/sales/saved', [APIController::class, 'getSavedSalesOrder']);
-    Route::post('/sales/saved/pay', [APIController::class, 'paySavedSalesOrder']); 
+    //Post Sales Invoice
+    Route::post('/sales-recipe/add', [APIController::class, 'insertSalesInvoiceRecipe']); //Insert Bayar langsung
+    Route::post('/sales/saved/pay', [APIController::class, 'paySavedSalesOrder']); //Insert data Bayar Nanti
 
+    //Fetch Sales Invoice
+    Route::post('/sales-recipe/save', [APIController::class, 'insertSaveSalesInvoiceRecipe']);//Insert Data Bayar Nanti
+    Route::post('/sales/saved', [APIController::class, 'getSavedSalesOrder']);//Fetch data Bayar Nanti
+
+    //Dashboard
     Route::post('/dashboard', [APIController::class, 'getDashboard']);
     Route::post('/dashboard/print', [APIController::class, 'getDashboardPrintData']);
 
+    //data
     Route::post('/preference-company', [APIController::class, 'getPreferenceCompany']);
     Route::post('/login-state', [APIController::class, 'getLoginState']);
 
-    //dashboard
-    Route::post('/dashboard/geprek', [APIController::class, 'getDashboardGeprek']);
-    Route::post('/dashboard/sarmed', [APIController::class, 'getDashboardSarmed']);
-    Route::post('/dashboard/rekap', [APIController::class, 'getDashboardRekap']);
 
     //!Tambahan
     Route::post('/printer-kitchen-address', [APIController::class, 'printerKitchenAddress']);

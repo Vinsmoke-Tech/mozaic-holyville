@@ -39,10 +39,10 @@ class SalesInvoice extends Model
         'sales_status',
     ];
     protected $guarded = [];
-    public function member()
-    {
-        return $this->hasOne(CoreMember::class, 'member_id', 'customer_id');
-    }
+    // public function member()
+    // {
+    //     return $this->hasOne(CoreMember::class, 'member_id', 'customer_id');
+    // }
     public function items()
     {
         return $this->hasMany(SalesInvoiceItem::class, 'sales_invoice_id', 'sales_invoice_id');
