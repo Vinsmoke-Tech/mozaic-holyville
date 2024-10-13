@@ -919,6 +919,7 @@ class APIController extends Controller
                 );
                 
                 $salesitem= $si->items()->create($data_item);
+                
                 $itemrecipe = CoreRecipe::where('item_menu_id', $data_item['item_id'])
                 ->where('data_state', 0)
                 ->get();
@@ -984,6 +985,7 @@ class APIController extends Controller
                 }
             }
             
+            //insert ke journal_voucher
             $transaction_module_code = 'PJL';
             $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
             
@@ -1052,6 +1054,7 @@ class APIController extends Controller
 
             //insert invoice_id in jurnal_voucher
             $jv->sales()->associate($si)->save();
+            
             //insert transaction_journal_no in jurnal_voucher
             $jv->salesNo()->associate($si)->save();
         
@@ -2351,7 +2354,7 @@ class APIController extends Controller
         ];
 
         return response($response, 201);
-    } 
+    }
 
     public function getPreferenceCompany(Request $request){
         $user = User::select('preference_company.company_id')
