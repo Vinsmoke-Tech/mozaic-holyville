@@ -2,42 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\InvtItem;
+use App\Models\CoreRecipe;
+use App\Models\AcctAccount;
+use App\Models\Expenditure;
+use Illuminate\Support\Arr;
+use App\Models\CapitalMoney;
+use App\Models\InvtItemUnit;
+use App\Models\SalesInvoice;
 use Illuminate\Http\Request;
+use App\Models\InvtItemStock;
+use App\Models\InvtWarehouse;
 use Illuminate\Http\Response;
+use App\Models\JournalVoucher;
+use App\Models\SystemLoginLog;
+use App\Models\PurchaseInvoice;
+use App\Models\InvtItemCategory;
+use App\Models\SalesInvoiceItem;
+use App\Models\PreferenceCompany;
+use App\Models\AcctAccountSetting;
+use App\Models\JournalVoucherItem;
+use App\Models\SalesInvoiceSarmed;
+use Illuminate\Support\Facades\DB;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\PurchaseInvoiceSarmed;
+use App\Models\SalesConsignmentSarmed;
+use App\Models\SalesInvoiceItemSarmed;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Hash;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-use App\Models\User;
-use App\Models\CoreRecipe;
-use App\Models\PreferenceCompany;
-use App\Models\InvtItemCategory;
-use App\Models\InvtItemUnit;
-use App\Models\InvtItem;
-use App\Models\SalesInvoice;
-use App\Models\SalesInvoiceItem;
-use App\Models\CapitalMoney;
-use App\Models\Expenditure;
-use App\Models\InvtItemStock;
-use App\Models\JournalVoucher;
-use App\Models\JournalVoucherItem;
-use App\Models\PreferenceTransactionModule;
-use App\Models\AcctAccountSetting;
-use App\Models\AcctAccount;
-use App\Models\SystemLoginLog;
-use App\Models\InvtWarehouse;
-use App\Models\PurchaseInvoice;
-use App\Models\PurchaseInvoiceSarmed;
 use App\Models\PurchaseInvoiceItemSarmed;
-use App\Models\SalesInvoiceSarmed;
-use App\Models\SalesInvoiceItemSarmed;
-use App\Models\SalesConsignmentSarmed;
 use App\Models\SalesConsignmentItemSarmed;
+use App\Models\PreferenceTransactionModule;
 
 class APIController extends Controller
 {
@@ -850,6 +851,8 @@ class APIController extends Controller
             'paid_amount'               => 'required',
             'index_button'              => 'required',
         ]);
+        $description = $request->descriptions;
+
     
         $company_id = User::select('preference_company.company_id')
         ->join('preference_company', 'preference_company.company_id', 'system_user.company_id')
@@ -873,201 +876,232 @@ class APIController extends Controller
             $payment_method = 6;
         }
 
-        $data = array(
-            'sales_invoice_date'        => date("Y-m-d"),
-            'subtotal_amount'           => $fields['subtotal_amount'],
-            'subtotal_item'             => $fields['subtotal_item'],
-            'discount_percentage_total' => $disc_percentage,
-            'discount_amount_total'     => $fields['discount_amount_total'],
-            'ppn_percentage_total'      => $fields['ppn_percentage_total'],
-            'ppn_amount_total'          => $fields['ppn_amount_total'],
-            'total_amount'              => $fields['total_amount'],
-            'paid_amount'               => $fields['paid_amount'],
-            'change_amount'             => $fields['paid_amount']-$fields['total_amount'],
-            'table_no'                  => $request->table_no,
-            'created_id'                => $fields['user_id'],
-            'payment_method'            => $payment_method,
-            'company_id'                => $company_id['company_id']
-        );
-    try {
-        DB::beginTransaction();
+        try {
+            DB::beginTransaction();
 
-        $si = SalesInvoice::create($data);
+            $data = array(
+                'sales_invoice_date'        => date("Y-m-d"),
+                'subtotal_amount'           => $fields['subtotal_amount'],
+                'subtotal_item'             => $fields['subtotal_item'],
+                'discount_percentage_total' => $disc_percentage,
+                'discount_amount_total'     => $fields['discount_amount_total'],
+                'ppn_percentage_total'      => $fields['ppn_percentage_total'],
+                'ppn_amount_total'          => $fields['ppn_amount_total'],
+                'total_amount'              => $fields['total_amount'],
+                'paid_amount'               => $fields['paid_amount'],
+                'change_amount'             => $fields['paid_amount']-$fields['total_amount'],
+                'table_no'                  => $request->table_no,
+                'created_id'                => $fields['user_id'],
+                'payment_method'            => $payment_method,
+                'company_id'                => $company_id['company_id']
+            );
 
-        if(count($si->refresh()->journal()->get())) { 
-            DB::rollBack();
-            return response(['message' => 'Data Tidak Berhasil Disimpan'], 400);
-        }
+            $si = SalesInvoice::create($data);
 
-        if(!empty($si)){
-            foreach($fields['items'] as $key => $val){
-                $item = InvtItem::where('item_id', $val['item_id'])->first();
-                $data_item = array(
-                    'item_category_id'               => $item['item_category_id'],
-                    'item_unit_id'                   => $item['item_unit_id'],
-                    'item_id'                        => $val['item_id'],
-                    'quantity'                       => $val['quantity'],
-                    'item_unit_price'                => $val['item_unit_price'],
-                    'subtotal_amount'                => $val['item_unit_price']*$val['quantity'],
-                    'subtotal_amount_after_discount' => $val['item_unit_price']*$val['quantity'],
-                    'discount_percentage'            => 0,
-                    'discount_amount'                => 0,
-                    'ppn_percentage'                 => $fields['ppn_percentage_total'],
-                    'ppn_amount'                     => $fields['ppn_percentage_total']/100*$val['item_unit_price']*$val['quantity'],
-                    'created_id'                     => $fields['user_id'],
-                    'company_id'                     => $company_id['company_id']
-                );
-                
-                $salesitem= $si->items()->create($data_item);
-                
-                $itemrecipe = CoreRecipe::where('item_menu_id', $data_item['item_id'])
-                ->where('data_state', 0)
-                ->get();
 
-                    if(count($itemrecipe) > 0){
-                        foreach($itemrecipe as $keyy => $vall){
-                            $itemstock = InvtItemStock::where('item_id', $vall['item_id'])
-                            ->where('item_unit_id', $vall['item_unit_id'])
-                            ->first();
+            //check jika transaction_journal_no sudah ada maka error tidak bisa insert
+                if ($si->journal()->exists()) {
+                    Log::warning('Duplikasi jurnal terdeteksi untuk transaction_journal_no ' . $si->sales_invoice_id . '. Gagal menyimpan data.');
+                    DB::rollBack();
+                    return response(['message' => 'Duplikasi jurnal terdeteksi untuk sales_invoice_id'], 400);
+                }
+            //end
 
+            // Cek ulang setelah insert invoice apakah jurnal sudah ada (race condition prevention)
+                $existingJV = JournalVoucher::where('invoice_id', $si->sales_invoice_id)->lockForUpdate()->first();
+                if ($existingJV) {
+
+                    Log::warning('Duplikasi jurnal terdeteksi untuk sales_invoice' . $si->sales_invoice_id . '. Gagal menyimpan data.');
+
+                    DB::rollBack();
+                    return response(['message' => 'Duplikasi jurnal voucher terdeteksi'], 400);
+                }
+            //end
+
+            if(!empty($si)){
+                foreach($fields['items'] as $key => $val){
+                    $item = InvtItem::where('item_id', $val['item_id'])->first();
+                    $data_item = array(
+                        'item_category_id'               => $item['item_category_id'],
+                        'item_unit_id'                   => $item['item_unit_id'],
+                        'item_id'                        => $val['item_id'],
+                        'quantity'                       => $val['quantity'],
+                        'item_unit_price'                => $val['item_unit_price'],
+                        'subtotal_amount'                => $val['item_unit_price']*$val['quantity'],
+                        'subtotal_amount_after_discount' => $val['item_unit_price']*$val['quantity'],
+                        'discount_percentage'            => 0,
+                        'discount_amount'                => 0,
+                        'ppn_percentage'                 => $fields['ppn_percentage_total'],
+                        'ppn_amount'                     => $fields['ppn_percentage_total']/100*$val['item_unit_price']*$val['quantity'],
+                        'created_id'                     => $fields['user_id'],
+                        'company_id'                     => $company_id['company_id']
+                    );
+                    
+                    $salesitem= $si->items()->create($data_item);
+                    
+                    $itemrecipe = CoreRecipe::where('item_menu_id', $data_item['item_id'])
+                    ->where('data_state', 0)
+                    ->get();
+
+                        if(count($itemrecipe) > 0){
+                            foreach($itemrecipe as $keyy => $vall){
+                                $itemstock = InvtItemStock::where('item_id', $vall['item_id'])
+                                ->where('item_unit_id', $vall['item_unit_id'])
+                                ->first();
+
+                                if($itemstock){
+                                    $itemstock->last_balance = $itemstock['last_balance']-($vall['quantity']*$data_item['quantity']);
+                                    $itemstock->save();
+                                }else{
+                                    $warehouse = InvtWarehouse::select('warehouse_id')
+                                    ->where('company_id', $company_id['company_id'])
+                                    ->first();
+
+                                    $itemcategory = InvtItem::select('item_category_id')
+                                    ->where('item_id', $vall['item_id'])
+                                    ->first();
+        
+                                    $data_stock = array (
+                                        'company_id'        => $company_id['company_id'],
+                                        'warehouse_id'      => $warehouse['warehouse_id'],
+                                        'item_id'           => $vall['item_id'],
+                                        'item_unit_id'      => $vall['item_unit_id'],
+                                        'item_category_id'  => $itemcategory['item_category_id'],
+                                        'last_balance'      => ($vall['quantity']*$data_item['quantity'])*-1,
+                                        'created_id'        => $fields['user_id'],
+                                    );
+                                    InvtItemStock::create($data_stock);
+                                }
+                            }
+                        }else{
+                            $itemstock = InvtItemStock::where('item_id', $data_item['item_id'])->first();
                             if($itemstock){
-                                $itemstock->last_balance = $itemstock['last_balance']-($vall['quantity']*$data_item['quantity']);
+                                $itemstock->last_balance = $itemstock['last_balance']-$data_item['quantity'];
                                 $itemstock->save();
                             }else{
                                 $warehouse = InvtWarehouse::select('warehouse_id')
                                 ->where('company_id', $company_id['company_id'])
                                 ->first();
 
-                                $itemcategory = InvtItem::select('item_category_id')
-                                ->where('item_id', $vall['item_id'])
-                                ->first();
-    
                                 $data_stock = array (
                                     'company_id'        => $company_id['company_id'],
                                     'warehouse_id'      => $warehouse['warehouse_id'],
-                                    'item_id'           => $vall['item_id'],
-                                    'item_unit_id'      => $vall['item_unit_id'],
-                                    'item_category_id'  => $itemcategory['item_category_id'],
-                                    'last_balance'      => ($vall['quantity']*$data_item['quantity'])*-1,
+                                    'item_id'           => $val['item_id'],
+                                    'item_unit_id'      => $item['item_unit_id'],
+                                    'item_category_id'  => $item['item_category_id'],
+                                    'last_balance'      => ($data_item['quantity'])*-1,
                                     'created_id'        => $fields['user_id'],
                                 );
                                 InvtItemStock::create($data_stock);
                             }
                         }
-                    }else{
-                        $itemstock = InvtItemStock::where('item_id', $data_item['item_id'])->first();
-                        if($itemstock){
-                            $itemstock->last_balance = $itemstock['last_balance']-$data_item['quantity'];
-                            $itemstock->save();
-                        }else{
-                            $warehouse = InvtWarehouse::select('warehouse_id')
-                            ->where('company_id', $company_id['company_id'])
-                            ->first();
-
-                            $data_stock = array (
-                                'company_id'        => $company_id['company_id'],
-                                'warehouse_id'      => $warehouse['warehouse_id'],
-                                'item_id'           => $val['item_id'],
-                                'item_unit_id'      => $item['item_unit_id'],
-                                'item_category_id'  => $item['item_category_id'],
-                                'last_balance'      => ($data_item['quantity'])*-1,
-                                'created_id'        => $fields['user_id'],
-                            );
-                            InvtItemStock::create($data_stock);
-                        }
+                }
+                if(!empty($request->descriptions)){
+                    foreach($request->descriptions as $key => $val){
+                        $item=$si->items()->where('item_id', $val['item_id'])->first();
+                        $item->item_remark = $val['description'];
+                        $item->save();
                     }
-            }
-            if(!empty($request->descriptions)){
-                foreach($request->descriptions as $key => $val){
-                    $item=$si->items()->where('item_id', $val['item_id'])->first();
-                    $item->item_remark = $val['description'];
-                    $item->save();
                 }
-            }
-            
-            //insert ke journal_voucher
-            $transaction_module_code = 'PJL';
-            $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
-            
-            $journal = array(
-                'company_id'                    => $company_id['company_id'],
-                'journal_voucher_status'        => 1,
-                'journal_voucher_description'   => $this->getTransactionModuleName($transaction_module_code) ." Tunai ".$si->refresh()->sales_invoice_no,
-                'journal_voucher_title'         => $this->getTransactionModuleName($transaction_module_code) ." Tunai ".$si->sales_invoice_no,
-                'transaction_module_id'         => $transaction_module_id,
-                'transaction_module_code'       => $transaction_module_code,
-                'journal_voucher_date'          => $data['sales_invoice_date'],
-                'journal_voucher_period'        => date('Ym'),
-                'updated_id'                    => $fields['user_id'],
-                'created_id'                    => $fields['user_id']
-            );
-        
-            $jv=JournalVoucher::create($journal);
-
-                $account_setting_name   = 'sales_cash_account';
-                $account_id             = $this->getAccountId($account_setting_name, $company_id['company_id']);
-                $account_status         = $this->getAccountStatus($account_setting_name, $company_id['company_id']);
-                $account_default_status = $this->getAccountDefaultStatus($account_id);
-                if($account_status == 0){
-                    $debit_ammount = $fields['total_amount'];
-                    $credit_ammount = 0;
-                }else{
-                    $credit_ammount = $fields['total_amount'];
-                    $debit_ammount = 0;
-                }
-                $journal_debit = array(
-                    'company_id'                    => $company_id['company_id'],
-                    'account_id'                    => $account_id,
-                    'journal_voucher_amount'        => $fields['total_amount'],
-                    'account_id_default_status'     => $account_default_status,
-                    'account_id_status'             => $account_status,
-                    'journal_voucher_debit_amount'  => $debit_ammount,
-                    'journal_voucher_credit_amount' => $credit_ammount,
-                    'updated_id'                    => $fields['user_id'],
-                    'created_id'                    => $fields['user_id']
+                
+                //insert ke journal_voucher
+                $transaction_module_code = 'PJL';
+                $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
+                
+                $jv = JournalVoucher::firstOrCreate(
+                    ['invoice_id' => $si->sales_invoice_id], // Cek berdasarkan invoice_id
+                    [
+                        'company_id'                    => $company_id['company_id'],
+                        'journal_voucher_status'        => 1,
+                        'journal_voucher_description'   => $this->getTransactionModuleName($transaction_module_code) ." Tunai ".$si->refresh()->sales_invoice_no,
+                        'journal_voucher_title'         => $this->getTransactionModuleName($transaction_module_code) ." Tunai ".$si->sales_invoice_no,
+                        'transaction_module_id'         => $transaction_module_id,
+                        'transaction_module_code'       => $transaction_module_code,
+                        'journal_voucher_date'          => $data['sales_invoice_date'],
+                        'journal_voucher_period'        => date('Ym'),
+                        'updated_id'                    => $fields['user_id'],
+                        'created_id'                    => $fields['user_id']
+                    ]
                 );
-                $jv->items()->create($journal_debit);
-
-                $account_setting_name   = 'sales_account';
-                $account_id             = $this->getAccountId($account_setting_name, $company_id['company_id']);
-                $account_status         = $this->getAccountStatus($account_setting_name, $company_id['company_id']);
-                $account_default_status = $this->getAccountDefaultStatus($account_id);
-                if($account_status == 0){
-                    $debit_ammount = $fields['total_amount'];
-                    $credit_ammount = 0;
-                }else{
-                    $credit_ammount = $fields['total_amount'];
-                    $debit_ammount = 0;
-                }
-                $journal_credit = array(
-                    'company_id'                    => $company_id['company_id'],
-                    'account_id'                    => $account_id,
-                    'journal_voucher_amount'        => $fields['total_amount'],
-                    'account_id_default_status'     => $account_default_status,
-                    'account_id_status'             => $account_status,
-                    'journal_voucher_debit_amount'  => $debit_ammount,
-                    'journal_voucher_credit_amount' => $credit_ammount,
-                    'updated_id'                    => $fields['user_id'],
-                    'created_id'                    => $fields['user_id']
-                );
-            $jv->items()->create($journal_credit);
-
-            //insert invoice_id in jurnal_voucher
-            $jv->sales()->associate($si)->save();
             
-            //insert transaction_journal_no in jurnal_voucher
-            $jv->salesNo()->associate($si)->save();
-        
-            DB::commit();
-            return response(['message' => 'Data Berhasil Disimpan'], 201);
-        }else{
-            return response(['message' => 'Penjualan Kosong','eror'=>"Data Tidak Dapat dibuat"], 400);
+                // $jv=JournalVoucher::create($journal);
+
+                    $account_setting_name   = 'sales_cash_account';
+                    $account_id             = $this->getAccountId($account_setting_name, $company_id['company_id']);
+                    $account_status         = $this->getAccountStatus($account_setting_name, $company_id['company_id']);
+                    $account_default_status = $this->getAccountDefaultStatus($account_id);
+                    if($account_status == 0){
+                        $debit_ammount = $fields['total_amount'];
+                        $credit_ammount = 0;
+                    }else{
+                        $credit_ammount = $fields['total_amount'];
+                        $debit_ammount = 0;
+                    }
+                    $journal_debit = array(
+                        'company_id'                    => $company_id['company_id'],
+                        'account_id'                    => $account_id,
+                        'journal_voucher_amount'        => $fields['total_amount'],
+                        'account_id_default_status'     => $account_default_status,
+                        'account_id_status'             => $account_status,
+                        'journal_voucher_debit_amount'  => $debit_ammount,
+                        'journal_voucher_credit_amount' => $credit_ammount,
+                        'updated_id'                    => $fields['user_id'],
+                        'created_id'                    => $fields['user_id']
+                    );
+                    $jv->items()->create($journal_debit);
+
+                    $account_setting_name   = 'sales_account';
+                    $account_id             = $this->getAccountId($account_setting_name, $company_id['company_id']);
+                    $account_status         = $this->getAccountStatus($account_setting_name, $company_id['company_id']);
+                    $account_default_status = $this->getAccountDefaultStatus($account_id);
+                    if($account_status == 0){
+                        $debit_ammount = $fields['total_amount'];
+                        $credit_ammount = 0;
+                    }else{
+                        $credit_ammount = $fields['total_amount'];
+                        $debit_ammount = 0;
+                    }
+                    $journal_credit = array(
+                        'company_id'                    => $company_id['company_id'],
+                        'account_id'                    => $account_id,
+                        'journal_voucher_amount'        => $fields['total_amount'],
+                        'account_id_default_status'     => $account_default_status,
+                        'account_id_status'             => $account_status,
+                        'journal_voucher_debit_amount'  => $debit_ammount,
+                        'journal_voucher_credit_amount' => $credit_ammount,
+                        'updated_id'                    => $fields['user_id'],
+                        'created_id'                    => $fields['user_id']
+                    );
+                $jv->items()->create($journal_credit);
+
+                //insert invoice_no in jurnal_voucher
+                if (!$jv->sales()->exists()) {
+                    $jv->sales()->associate($si)->save();
+                }
+                //insert transaction_journal_no in jurnal_voucher
+                $jv->salesNo()->associate($si)->save();
+
+                // Menulis log setelah data berhasil disimpan
+                Log::info('Data berhasil disimpan', [
+                    'sales_invoice_id' => $si->sales_invoice_id, 
+                    'journal_data' => $si->journal()->get()
+                ]);
+
+                DB::commit();
+                
+                return response(['message' => 'Data Berhasil Disimpan'], 201);
+            }else{
+                Log::info('Data Tidak Dapat dibuat', [
+                    'si_id' => $si->id, 
+                    'journal_data' => $si->journal()->get()
+                ]);
+                return response(['message' => 'Penjualan Kosong','eror'=>"Data Tidak Dapat dibuat"], 400);
+            }
+        } catch(\Exception $e){
+            DB::rollBack();
+            report($e);
+            return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
         }
-    } catch(\Exception $e){
-        DB::rollBack();
-        report($e);
-        return response(['message' => 'Data Tidak Berhasil Disimpan','eror'=>$e], 400);
-    }
 
     }
 
@@ -1408,8 +1442,19 @@ class APIController extends Controller
             //end
 
         try {
+
             DB::beginTransaction();
-            $salesinvoice->save();
+
+                // Cek apakah invoice_id sudah ada di journal_voucher (hanya jika invoice_id tidak NULL)
+                $invoiceExists = JournalVoucher::whereNotNull('invoice_id')
+                ->where('invoice_id', $salesinvoice->sales_invoice_id)
+                ->exists();
+
+                if ($invoiceExists) {
+                    return response(['message' => 'Data Tidak Berhasil Disimpan - Invoice ID Sudah Ada'], 400);
+                }
+
+                $salesinvoice->save();
                 
                 $transaction_module_code = 'PJL';
                 $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
@@ -1478,9 +1523,7 @@ class APIController extends Controller
                         $credit_ammount = $salesinvoice['total_amount'];
                         $debit_ammount = 0;
                     }
-                    $journal_credit = array(
-
-                    );
+                    
                     $jv->items()->create([
                         'company_id'                    => $company_id['company_id'],
                         'journal_voucher_id'            => $journal_voucher_id['journal_voucher_id'],
