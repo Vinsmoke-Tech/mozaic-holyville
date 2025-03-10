@@ -907,7 +907,7 @@ class APIController extends Controller
                 }
             //end
 
-            // Cek ulang setelah insert invoice apakah jurnal sudah ada (race condition prevention)
+            // Cek ulang setelah insert invoice apakah jurnal sudah ada (race condition prevention) 
                 $existingJV = JournalVoucher::where('invoice_id', $si->sales_invoice_id)->lockForUpdate()->first();
                 if ($existingJV) {
 

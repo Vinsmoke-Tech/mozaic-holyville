@@ -71,8 +71,9 @@ Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/select-item-stock/{category_id}/{unit_id}/{item_id}',[HomeController::class, 'selectItemStock']);
-Route::get('/select-item/{id}',[HomeController::class, 'selectItem']);
+Route::get('/select-item/{id}',[HomeController::class, 'selectItem']);                                                                          
 Route::get('/select-item-unit/{id}',[HomeController::class, 'selectItemUnit']);
+
 Route::get('/option-item/{item_category_id}',[PublicController::class, 'optionItem']);
 Route::get('/option-item-unit/{item_id}',[PublicController::class, 'optionItemUnit']);
 Route::get('/get-item-price/{item_id}',[PublicController::class, 'getItemPrice']);
