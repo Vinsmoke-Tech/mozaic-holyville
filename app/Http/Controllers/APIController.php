@@ -284,7 +284,7 @@ class APIController extends Controller
         }
 
         $allcategory = array(
-            'item_category_id'      => 1,
+            // 'item_category_id'      => 1,
             'company_id'            => 2,
             'item_category_name'    => 'Semua',
             'item_category_code'    => 'Semua',
@@ -397,8 +397,8 @@ class APIController extends Controller
         $invitem = InvtItem::select('*')
         ->where('company_id', $company_id['company_id'])
         ->where('data_state', 0)
-        ->where('item_category_id', 24)
-        ->orWhere('item_category_id', 25)
+        // ->where('item_category_id', 24)
+        // ->orWhere('item_category_id', 25)
         ->orderBy('item_name', 'ASC')
         ->get();
 
@@ -939,62 +939,25 @@ class APIController extends Controller
                     
                     $salesitem= $si->items()->create($data_item);
                     
-                    $itemrecipe = CoreRecipe::where('item_menu_id', $data_item['item_id'])
-                    ->where('data_state', 0)
-                    ->get();
+                    if($itemstock){
+                        $itemstock->last_balance = $itemstock['last_balance']-$data_item['quantity'];
+                        $itemstock->save();
+                    }else{
+                        $warehouse = InvtWarehouse::select('warehouse_id')
+                        ->where('company_id', $company_id['company_id'])
+                        ->first();
 
-                        if(count($itemrecipe) > 0){
-                            foreach($itemrecipe as $keyy => $vall){
-                                $itemstock = InvtItemStock::where('item_id', $vall['item_id'])
-                                ->where('item_unit_id', $vall['item_unit_id'])
-                                ->first();
-
-                                if($itemstock){
-                                    $itemstock->last_balance = $itemstock['last_balance']-($vall['quantity']*$data_item['quantity']);
-                                    $itemstock->save();
-                                }else{
-                                    $warehouse = InvtWarehouse::select('warehouse_id')
-                                    ->where('company_id', $company_id['company_id'])
-                                    ->first();
-
-                                    $itemcategory = InvtItem::select('item_category_id')
-                                    ->where('item_id', $vall['item_id'])
-                                    ->first();
-        
-                                    $data_stock = array (
-                                        'company_id'        => $company_id['company_id'],
-                                        'warehouse_id'      => $warehouse['warehouse_id'],
-                                        'item_id'           => $vall['item_id'],
-                                        'item_unit_id'      => $vall['item_unit_id'],
-                                        'item_category_id'  => $itemcategory['item_category_id'],
-                                        'last_balance'      => ($vall['quantity']*$data_item['quantity'])*-1,
-                                        'created_id'        => $fields['user_id'],
-                                    );
-                                    InvtItemStock::create($data_stock);
-                                }
-                            }
-                        }else{
-                            $itemstock = InvtItemStock::where('item_id', $data_item['item_id'])->first();
-                            if($itemstock){
-                                $itemstock->last_balance = $itemstock['last_balance']-$data_item['quantity'];
-                                $itemstock->save();
-                            }else{
-                                $warehouse = InvtWarehouse::select('warehouse_id')
-                                ->where('company_id', $company_id['company_id'])
-                                ->first();
-
-                                $data_stock = array (
-                                    'company_id'        => $company_id['company_id'],
-                                    'warehouse_id'      => $warehouse['warehouse_id'],
-                                    'item_id'           => $val['item_id'],
-                                    'item_unit_id'      => $item['item_unit_id'],
-                                    'item_category_id'  => $item['item_category_id'],
-                                    'last_balance'      => ($data_item['quantity'])*-1,
-                                    'created_id'        => $fields['user_id'],
-                                );
-                                InvtItemStock::create($data_stock);
-                            }
-                        }
+                        $data_stock = array (
+                            'company_id'        => $company_id['company_id'],
+                            'warehouse_id'      => $warehouse['warehouse_id'],
+                            'item_id'           => $val['item_id'],
+                            'item_unit_id'      => $item['item_unit_id'],
+                            'item_category_id'  => $item['item_category_id'],
+                            'last_balance'      => ($data_item['quantity'])*-1,
+                            'created_id'        => $fields['user_id'],
+                        );
+                        InvtItemStock::create($data_stock);
+                    }
                 }
                 if(!empty($request->descriptions)){
                     foreach($request->descriptions as $key => $val){
