@@ -266,7 +266,7 @@ class APIController extends Controller
         $invtcategory = InvtItemCategory::select('*')
         ->where('company_id', $company_id['company_id'])
         ->where('data_state', 0)
-        // ->orderBy('item_category_name', 'ASC')
+        ->orderBy('item_category_name', 'ASC')
         ->get();
 
         $total = 0;
@@ -284,7 +284,7 @@ class APIController extends Controller
         }
 
         $allcategory = array(
-            // 'item_category_id'      => 1,
+            'item_category_id'      => 1,
             'company_id'            => 2,
             'item_category_name'    => 'Semua',
             'item_category_code'    => 'Semua',
