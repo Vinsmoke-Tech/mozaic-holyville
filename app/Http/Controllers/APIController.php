@@ -938,7 +938,7 @@ class APIController extends Controller
                     );
                     
                     $salesitem= $si->items()->create($data_item);
-                    
+                    $itemstock = InvtItemStock::where('item_id', $data_item['item_id'])->where('item_unit_id',$data_item['item_unit_id'])->first();
                     if($itemstock){
                         $itemstock->last_balance = $itemstock['last_balance']-$data_item['quantity'];
                         $itemstock->save();
