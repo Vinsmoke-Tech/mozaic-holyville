@@ -69,6 +69,9 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
     Route::post('/preference-company', [APIController::class, 'getPreferenceCompany']);
     Route::post('/login-state', [APIController::class, 'getLoginState']);
 
+    //cup
+    Route::post('/cup', [ApiController::class, 'getCup']);
+
 
     //!Tambahan
     Route::post('/printer-kitchen-address', [APIController::class, 'printerKitchenAddress']);
@@ -76,6 +79,7 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
     
     Route::post('/item-new-menu', [APIController::class, 'getInvtItemNewMenu']);
     Route::post('/item-all', [ApiController::class, 'getInvtAllItem']);
+
 });
 
 Route::post('/login', [APIController::class, 'login']); 

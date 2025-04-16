@@ -3206,4 +3206,9 @@ class APIController extends Controller
             ],401);
         }
     }
+
+    public function Cup(Request $request){
+
+        $cup = InvtItem::where('cup_state', 1)->get();
+    }
 }
