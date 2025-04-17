@@ -71,7 +71,13 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
 
     //cup
     Route::post('/cup', [ApiController::class, 'getCup']);
-
+    Route::get('/session-check', function () {
+        return response()->json([
+            'session_id' => session()->getId(),
+            'session_all' => session()->all()
+        ]);
+    });
+    
 
     //!Tambahan
     Route::post('/printer-kitchen-address', [APIController::class, 'printerKitchenAddress']);

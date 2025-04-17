@@ -8,6 +8,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 
+use App\Models\CacheCup;
+
 use App\Models\InvtItem;
 
 use App\Models\CoreRecipe;
@@ -77,7 +79,6 @@ use Illuminate\Support\Facades\Session;
 use App\Models\PurchaseInvoiceItemSarmed;
 
 use App\Models\SalesConsignmentItemSarmed;
-
 use App\Models\PreferenceTransactionModule;
 
 
@@ -1757,9 +1758,6 @@ class APIController extends Controller
         try {
 
             DB::beginTransaction();
-
-
-
             $data = array(
 
                 'sales_invoice_date'        => date("Y-m-d"),
@@ -1909,13 +1907,27 @@ class APIController extends Controller
 
                     }
 
-                }
-
                 //cup qty
                 $item_cup = InvtItem::where('item_id', $val['item_id'])->where('cup_state', 1)->first();
                 if($item_cup){
-                    $cup_qty->cup_qty = $val['quantity'] + 0;
+                    $today = date('Y-m-d');
+                    $cachecup = CacheCup::where('created_at', $today)->first();
+                    
+                    if($cachecup){
+                        $cachecup->cup_quantity += $val['quantity'];
+                        $cachecup->save();
+                    }else{
+                        $data_cup = array (
+
+                            'cup_quantity'      => $val['quantity'],
+                        );
+                        CacheCup::create($data_cup);
+                    }
                 }
+
+                }
+
+
 
                 if(!empty($request->descriptions)){
 
@@ -1930,8 +1942,6 @@ class APIController extends Controller
                     }
 
                 }
-
-                
 
                 //insert ke journal_voucher
 
@@ -6411,10 +6421,8 @@ class APIController extends Controller
     }
 
     public function getCup(Request $request){
-
-        $cup = InvtItem::where('cup_state', 1)->first();
-        $quantity = 2;
-        $cup_state =  $quantity + 0;
-        return response(['cup' => $cup_state], 201);
+        $cup = CacheCup::select('cup_quantity')
+            ->first();
+        return response()->json(['cup' => $cup ? $cup->cup_quantity : 0], 201);
     }
 }
