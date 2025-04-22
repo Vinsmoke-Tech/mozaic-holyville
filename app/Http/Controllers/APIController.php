@@ -135,7 +135,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         $login_log = array(
 
@@ -155,7 +155,7 @@ class APIController extends Controller
 
         SystemLoginLog::create($login_log);
 
-        
+
 
         $token = $user->createToken('token-name')->plainTextToken;
 
@@ -187,7 +187,7 @@ class APIController extends Controller
 
         auth()->user()->tokens()->delete();
 
-        
+
 
         $login_log = array(
 
@@ -273,9 +273,9 @@ class APIController extends Controller
 
         $user = User::findOrFail($fields['user_id']);
 
-        
 
-        if(!Hash::check($fields['old_password'], $user->password)){ 
+
+        if(!Hash::check($fields['old_password'], $user->password)){
 
             return response([
 
@@ -491,7 +491,7 @@ class APIController extends Controller
 
             return response([
 
-                'data' => $invtcategory 
+                'data' => $invtcategory
 
             ],201);
 
@@ -507,7 +507,7 @@ class APIController extends Controller
 
     }
 
-    
+
 
     public function getInvtItemCategory(Request $request){
 
@@ -589,7 +589,7 @@ class APIController extends Controller
 
         $invtcategory[] = $allcategory;
 
-        
+
 
         $invtcategory = $invtcategory->sortBy('item_category_id')->values()->all();
 
@@ -599,7 +599,7 @@ class APIController extends Controller
 
             return response([
 
-                'data' => $invtcategory 
+                'data' => $invtcategory
 
             ],201);
 
@@ -963,7 +963,7 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
@@ -1023,7 +1023,7 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
@@ -1149,7 +1149,7 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
@@ -1229,7 +1229,7 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
@@ -1387,7 +1387,7 @@ class APIController extends Controller
 
                 );
 
-                
+
 
                 if(SalesInvoiceItem::create($data_item)){
 
@@ -1437,7 +1437,7 @@ class APIController extends Controller
 
                         'message' => 'Data Tidak Berhasil Disimpan'
 
-                    ],401);            
+                    ],401);
 
                 }
 
@@ -1461,13 +1461,13 @@ class APIController extends Controller
 
             }
 
-            
+
 
             $transaction_module_code = 'PJL';
 
             $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
 
-            
+
 
             $journal = array(
 
@@ -1659,7 +1659,7 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
@@ -1709,7 +1709,7 @@ class APIController extends Controller
 
 
 
-    
+
 
         $company_id = User::select('preference_company.company_id')
 
@@ -1808,7 +1808,7 @@ class APIController extends Controller
 
 
 
-            // Cek ulang setelah insert invoice apakah jurnal sudah ada (race condition prevention) 
+            // Cek ulang setelah insert invoice apakah jurnal sudah ada (race condition prevention)
 
                 $existingJV = JournalVoucher::where('invoice_id', $si->sales_invoice_id)->lockForUpdate()->first();
 
@@ -1912,7 +1912,7 @@ class APIController extends Controller
                 if($item_cup){
                     $today = date('Y-m-d');
                     $cachecup = CacheCup::where('created_at', $today)->first();
-                    
+
                     if($cachecup){
                         $cachecup->cup_quantity += $val['quantity'];
                         $cachecup->save();
@@ -1949,7 +1949,7 @@ class APIController extends Controller
 
                 $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
 
-                
+
 
                 $jv = JournalVoucher::firstOrCreate(
 
@@ -1981,7 +1981,7 @@ class APIController extends Controller
 
                 );
 
-            
+
 
                 // $jv=JournalVoucher::create($journal);
 
@@ -2101,7 +2101,7 @@ class APIController extends Controller
 
                 Log::info('Data berhasil disimpan', [
 
-                    'sales_invoice_id' => $si->sales_invoice_id, 
+                    'sales_invoice_id' => $si->sales_invoice_id,
 
                     'journal_data' => $si->journal()->get()
 
@@ -2111,7 +2111,7 @@ class APIController extends Controller
 
                 DB::commit();
 
-                
+
 
                 return response(['message' => 'Data Berhasil Disimpan'], 201);
 
@@ -2119,7 +2119,7 @@ class APIController extends Controller
 
                 Log::info('Data Tidak Dapat dibuat', [
 
-                    'si_id' => $si->id, 
+                    'si_id' => $si->id,
 
                     'journal_data' => $si->journal()->get()
 
@@ -2335,7 +2335,7 @@ class APIController extends Controller
 
                 );
 
-                
+
 
                 if(SalesInvoiceItem::create($data_item)){
 
@@ -2385,13 +2385,13 @@ class APIController extends Controller
 
                         'message' => 'Data Tidak Berhasil Disimpan'
 
-                    ],401);            
+                    ],401);
 
                 }
 
             }
 
-            
+
 
             foreach($request->descriptions as $key => $val){
 
@@ -2415,11 +2415,11 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
-        
+
 
 
 
@@ -2555,7 +2555,7 @@ class APIController extends Controller
 
                 );
 
-                
+
 
                 if(SalesInvoiceItem::create($data_item)){
 
@@ -2601,7 +2601,7 @@ class APIController extends Controller
 
                                 ->first();
 
-    
+
 
                                 $data_stock = array (
 
@@ -2645,7 +2645,7 @@ class APIController extends Controller
 
                             ->first();
 
-    
+
 
                             $data_stock = array (
 
@@ -2677,13 +2677,13 @@ class APIController extends Controller
 
                         'message' => 'Data Tidak Berhasil Disimpan'
 
-                    ],401);            
+                    ],401);
 
                 }
 
             }
 
-            
+
 
             foreach($request->descriptions as $key => $val){
 
@@ -2707,11 +2707,11 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
-        
+
 
 
 
@@ -2760,7 +2760,7 @@ class APIController extends Controller
 
         ->first();
 
-        
+
 
         if($fields['index_button'] <= 8){
 
@@ -2804,7 +2804,7 @@ class APIController extends Controller
 
             //check jika transaction_journal_no sudah ada maka error tidak bisa insert
 
-                if($salesinvoice->journal()->exists()) { 
+                if($salesinvoice->journal()->exists()) {
 
                     DB::rollBack();
 
@@ -2844,13 +2844,13 @@ class APIController extends Controller
 
                 $salesinvoice->save();
 
-                
+
 
                 $transaction_module_code = 'PJL';
 
                 $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
 
-                
+
 
                 $journal = array(
 
@@ -2880,7 +2880,7 @@ class APIController extends Controller
 
                 );
 
-                
+
 
                 //check apakah invoice_id di journal_voucher sudah ada
 
@@ -2890,7 +2890,7 @@ class APIController extends Controller
 
                 ->count();
 
-            
+
 
             //jika invoice_id belum ada maka insert ke journal voucher
 
@@ -2980,7 +2980,7 @@ class APIController extends Controller
 
                     }
 
-                    
+
 
                     $jv->items()->create([
 
@@ -3076,7 +3076,7 @@ class APIController extends Controller
 
             ->get();
 
-            
+
 
             $no = 0;
 
@@ -3108,7 +3108,7 @@ class APIController extends Controller
 
 
 
-        
+
 
 
 
@@ -3188,7 +3188,7 @@ class APIController extends Controller
 
             ->get();
 
-            
+
 
             $no = 0;
 
@@ -3220,7 +3220,7 @@ class APIController extends Controller
 
 
 
-        
+
 
 
 
@@ -3298,7 +3298,7 @@ class APIController extends Controller
 
             ->get();
 
-            
+
 
             $no = 0;
 
@@ -3512,7 +3512,7 @@ class APIController extends Controller
 
         ->first();
 
-        
+
 
         if($capitalmoney){
 
@@ -3532,7 +3532,7 @@ class APIController extends Controller
 
                     'message' => 'Data Tidak Berhasil Disimpan'
 
-                ],401);            
+                ],401);
 
             }
 
@@ -3550,7 +3550,7 @@ class APIController extends Controller
 
             );
 
-    
+
 
             if(CapitalMoney::create($data)){
 
@@ -3566,7 +3566,7 @@ class APIController extends Controller
 
                     'message' => 'Data Tidak Berhasil Disimpan'
 
-                ],401);            
+                ],401);
 
             }
 
@@ -3576,7 +3576,7 @@ class APIController extends Controller
 
     }
 
-    
+
 
     public function insertExpenditure(Request $request){
 
@@ -3628,7 +3628,7 @@ class APIController extends Controller
 
             $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
 
-            
+
 
             $journal = array(
 
@@ -3782,13 +3782,13 @@ class APIController extends Controller
 
                 'message' => 'Pengeluaran Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
     }
 
-    
+
 
     public function getExpenditure(Request $request){
 
@@ -3980,7 +3980,7 @@ class APIController extends Controller
 
         ->get();
 
-        
+
 
         $salesinvoiceitem = SalesInvoiceItem::select('invt_item.item_name', DB::raw('SUM(sales_invoice_item.quantity) as `quantity`'), DB::raw('SUM(sales_invoice_item.subtotal_amount) as `subtotal_amount`'))
 
@@ -4002,7 +4002,7 @@ class APIController extends Controller
 
         ->get();
 
-        
+
 
         $expenditure = Expenditure::select('*')
 
@@ -4152,7 +4152,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         return response([
 
@@ -4226,7 +4226,7 @@ class APIController extends Controller
 
         ->first();
 
-        
+
 
         $salesinvoiceitem = SalesInvoiceItem::select('sales_invoice_item.*', 'invt_item.item_name')
 
@@ -4246,7 +4246,7 @@ class APIController extends Controller
 
         ->first();
 
-        
+
 
         return response([
 
@@ -4292,7 +4292,7 @@ class APIController extends Controller
 
         ->first();
 
-        
+
 
         return response([
 
@@ -4304,7 +4304,7 @@ class APIController extends Controller
 
     }
 
-    
+
 
     public function getDashboardPrintData(Request $request){
 
@@ -4430,7 +4430,7 @@ class APIController extends Controller
 
         ->get();
 
-        
+
 
         $salesinvoiceitem = SalesInvoiceItem::select('invt_item.item_name', DB::raw('SUM(sales_invoice_item.quantity) as `quantity`'), DB::raw('SUM(sales_invoice_item.subtotal_amount) as `subtotal_amount`'))
 
@@ -4452,7 +4452,7 @@ class APIController extends Controller
 
         ->get();
 
-        
+
 
         $expenditure = Expenditure::select('*')
 
@@ -4602,7 +4602,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         return response([
 
@@ -4794,7 +4794,7 @@ class APIController extends Controller
 
         ]);
 
-        
+
 
         $company_id = User::select('preference_company.company_id')
 
@@ -4908,7 +4908,7 @@ class APIController extends Controller
 
             );
 
-            
+
 
             if(SalesInvoiceItem::create($data_item)){
 
@@ -4958,17 +4958,17 @@ class APIController extends Controller
 
                     'message' => 'Data Tidak Berhasil Disimpan'
 
-                ],401);            
+                ],401);
 
             }
 
-            
+
 
             $transaction_module_code = 'PJL';
 
             $transaction_module_id  = $this->getTransactionModuleID($transaction_module_code);
 
-            
+
 
             $journal = array(
 
@@ -5152,7 +5152,7 @@ class APIController extends Controller
 
                 // );
 
-                
+
 
                 // JournalVoucherItem::create($journal_credit);
 
@@ -5258,7 +5258,7 @@ class APIController extends Controller
 
             }
 
-            
+
 
         }else{
 
@@ -5266,11 +5266,11 @@ class APIController extends Controller
 
                 'message' => 'Data Tidak Berhasil Disimpan'
 
-            ],401);            
+            ],401);
 
         }
 
-        
+
 
 
 
@@ -5466,7 +5466,7 @@ class APIController extends Controller
 
         ->get();
 
-        
+
 
         $salesinvoiceitem = SalesInvoiceItem::select('invt_item.item_name', DB::raw('SUM(sales_invoice_item.quantity) as `quantity`'), DB::raw('SUM(sales_invoice_item.subtotal_amount) as `subtotal_amount`'))
 
@@ -5676,7 +5676,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         return response([
 
@@ -5892,7 +5892,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         return response([
 
@@ -6138,7 +6138,7 @@ class APIController extends Controller
 
         }
 
-        
+
 
         return response([
 
@@ -6162,7 +6162,7 @@ class APIController extends Controller
 
     //!Tambahan
 
-    
+
 
 
 
@@ -6322,7 +6322,7 @@ class APIController extends Controller
 
             return response([
 
-                'data' => $invtcategory 
+                'data' => $invtcategory
 
             ],201);
 
@@ -6422,6 +6422,7 @@ class APIController extends Controller
 
     public function getCup(Request $request){
         $cup = CacheCup::select('cup_quantity')
+            ->OrderBy('id_cup', 'DESC')
             ->first();
         return response()->json(['cup' => $cup ? $cup->cup_quantity : 0], 201);
     }

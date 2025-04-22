@@ -19,23 +19,23 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware'=> ['auth:sanctum']], function(){
+Route::group(['middleware'=> ['auth:sanctum', 'throttle:100,1']], function(){
     Route::post('/logout', [APIController::class, 'logout']);
     Route::post('/profile', [APIController::class, 'userProfile']);
     Route::post('/change-password', [APIController::class, 'changePassword']);
 
     Route::post('/printer-address', [APIController::class, 'printerAddress']);
     Route::post('/printer-address/update', [APIController::class, 'updatePrinterAddress']);
-    
+
     Route::post('/capital-money', [APIController::class, 'insertCapitalMoney']);
-    
+
     Route::post('/expenditure', [APIController::class, 'insertExpenditure']);
     Route::post('/expenditure-today', [APIController::class, 'getExpenditure']);
     Route::post('/expenditure/print', [APIController::class, 'getExpenditurePrintData']);
     Route::post('/expenditure/get-account', [APIController::class, 'getExpenditureAccount']);
-    
+
     Route::post('/item-category', [APIController::class, 'getInvtItemCategory']);
-    
+
     Route::post('/item-dropdown', [APIController::class, 'CategoryDropDown']);
 
     Route::post('/item-category/add', [APIController::class, 'insertInvtItemCategory']);
@@ -46,13 +46,13 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
     Route::post('/item-unit', [APIController::class, 'getInvtItemUnit']);
     Route::post('/item-unit/add', [APIController::class, 'insertInvtItemUnit']);
     Route::post('/item-detail', [APIController::class, 'getInvtItemDetail']);
-    
+
     Route::post('/sales/print', [APIController::class, 'getSalesPrintData']);
-    
+
     Route::post('/sales-list-today/unpaid', [APIController::class, 'getUnpaidSalesListToday']);
     Route::post('/sales-list-today/paid', [APIController::class, 'getPaidSalesListToday']);
     Route::post('/sales-list-today/paid/menu', [APIController::class, 'getPaidSalesListMenuToday']);
-    
+
     //Post Sales Invoice
     Route::post('/sales-recipe/add', [APIController::class, 'insertSalesInvoiceRecipe']); //Insert Bayar langsung
     Route::post('/sales/saved/pay', [APIController::class, 'paySavedSalesOrder']); //Insert data Bayar Nanti
@@ -77,16 +77,16 @@ Route::group(['middleware'=> ['auth:sanctum']], function(){
             'session_all' => session()->all()
         ]);
     });
-    
+
 
     //!Tambahan
     Route::post('/printer-kitchen-address', [APIController::class, 'printerKitchenAddress']);
     Route::post('/printer-kitchen-address/update', [APIController::class, 'updatePrinterKitchenAddress']);
-    
+
     Route::post('/item-new-menu', [APIController::class, 'getInvtItemNewMenu']);
     Route::post('/item-all', [ApiController::class, 'getInvtAllItem']);
 
 });
 
-Route::post('/login', [APIController::class, 'login']); 
-Route::get('/register-guest', [APIController::class, 'registerGuest']); 
+Route::post('/login', [APIController::class, 'login']);
+Route::get('/register-guest', [APIController::class, 'registerGuest']);
